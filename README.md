@@ -1,15 +1,11 @@
-# RAG Bot: A Retrieval-Augmented Generation Agent
+# RAG Bot: A Retrieval-Augmented Generation Bot
 
-This project is a complete Retrieval-Augmented Generation (RAG) bot built with a modern tech stack. It features a FastAPI backend, a React frontend, and a modular architecture that allows for configurable AI models and extensible agent capabilities.
+This project is a complete Retrieval-Augmented Generation (RAG) bot built with a modern tech stack. It features a FastAPI backend, a React frontend, and a modular architecture that allows for configurable AI models.
 
 ## Features
 
-- **Dual Chat Modes**: Switch between a simple RAG mode for direct document-based answers and a powerful Agent mode with tool-using capabilities.
 - **Knowledge Ingestion**: Upload documents (.pdf, .docx, .txt) to a persistent vector store, making them available to the bot as a knowledge base.
 - **Configurable LLMs**: Easily switch between different language model providers (OpenAI, Google Gemini, DeepSeek) via a simple configuration file.
-- **Conversational Memory**: The agent remembers previous turns in the conversation for a natural, follow-up dialogue.
-- **Tool-Using Agent**: The agent can use tools to augment its knowledge, including a web search tool and a tool to search the local knowledge base.
-- **Human Handoff**: A mechanism for the bot to flag a conversation for human intervention, and for the user to request a human agent.
 - **Streaming Responses**: The bot's responses are streamed to the UI token-by-token for a real-time, responsive user experience.
 - **Containerized**: The entire application is containerized with Docker, allowing for easy setup and deployment.
 - **Testing & CI**: The project includes a testing suite with `pytest` and a GitHub Actions workflow for continuous integration.
@@ -54,7 +50,7 @@ Before running the application, you need to configure your API keys and select a
 2. Edit the `.env` file:
 
     ```ini
-    LLM_PROVIDER="openai" # Options    langchain-community>=0.0.21: "openai", "gemini", "deepseek"
+    LLM_PROVIDER="openai" # Options: "openai", "gemini", "deepseek"
 
     # Add your API keys here
     OPENAI_API_KEY="your_openai_api_key_here"
@@ -117,8 +113,7 @@ npm start
 The main API endpoints are served by the FastAPI backend:
 
 - `POST /api/v1/upload`: Upload a document for ingestion.
-- `POST /api/v1/chat/rag/stream`: Start a streaming chat session in RAG mode.
-- `POST /api/v1/chat/agent/stream`: Start a streaming chat session in Agent mode.
+- `POST /api/v1/chat/rag/stream`: Start a streaming chat session.
 
 ## Running Tests
 

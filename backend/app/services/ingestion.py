@@ -1,25 +1,36 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader
 from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import SentenceTransformerEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 import os
 import tempfile
+import re
+import asyncio
 
 # In a real app, these would be configured
 EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
 VECTORSTORE_PATH = "./vectorstore"
 
 # Create embedding function
-embedding_function = SentenceTransformerEmbeddings(model_name=EMBEDDING_MODEL_NAME)
+_embedding_function = None
+_vector_store_instance = None
 
-# Get ChromaDB client
-# In a real app, you'd have a singleton or a dependency-injected client.
-vector_store = Chroma(
-    persist_directory=VECTORSTORE_PATH,
-    embedding_function=embedding_function
-)
+def get_embedding_function():
+    global _embedding_function
+    if _embedding_function is None:
+        _embedding_function = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
+    return _embedding_function
 
-def ingest_document(doc_id: str, filename: str, content: bytes):
+def get_vector_store():
+    global _vector_store_instance
+    if _vector_store_instance is None:
+        _vector_store_instance = Chroma(
+            persist_directory=VECTORSTORE_PATH,
+            embedding_function=get_embedding_function()
+        )
+    return _vector_store_instance
+
+async def ingest_document(doc_id: str, filename: str, content: bytes):
     """
     Ingests a document into the vector store.
     1. Detects file type and loads document.
@@ -50,10 +61,15 @@ def ingest_document(doc_id: str, filename: str, content: bytes):
         documents = loader.load()
         print(f"Loaded {len(documents)} document(s).")
 
+        for doc in documents:
+            doc.page_content = re.sub(r'\s+', ' ', doc.page_content)
+
         # 2. Chunk the document
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
         chunks = text_splitter.split_documents(documents)
         print(f"Split document into {len(chunks)} chunks.")
+
+
 
         # Add metadata to chunks
         for i, chunk in enumerate(chunks):
@@ -63,8 +79,9 @@ def ingest_document(doc_id: str, filename: str, content: bytes):
             })
         
         # 3. Embed and store chunks
-        vector_store.add_documents(documents=chunks, ids=[f"{doc_id}-{i}" for i, _ in enumerate(chunks)])
-        vector_store.persist()
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, lambda: get_vector_store().add_documents(documents=chunks, ids=[f"{doc_id}-{i}" for i, _ in enumerate(chunks)]))
+        await loop.run_in_executor(None, lambda: get_vector_store().persist())
 
         print(f"Successfully ingested document {doc_id} into vector store.")
 

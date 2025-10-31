@@ -3,7 +3,7 @@ from pydantic import BaseModel
 class ChatRequest(BaseModel):
     conversation_id: str | None = None
     message: str
-    user_id: str
+    rag_prompt: str | None = None
 
 class ChatResponse(BaseModel):
     response: str

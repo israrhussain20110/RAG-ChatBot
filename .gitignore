@@ -21,3 +21,14 @@ vectorstore/
 # IDEs
 .vscode/
 .idea/
+
+# Logs
+\0.3.0
+logs/*.log
+debug.log*
+0.3.0
+0.3.7
+1.0.0
+1.0.1
+2.1.0
+3.0.0
